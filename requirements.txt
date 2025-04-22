@@ -4,4 +4,7 @@ diffusers
 transformers
 sentencepiece
 accelerate
-huggingface_hub[hf_xet]
+huggingface_hub
+openai
+gunicorn
+peft
