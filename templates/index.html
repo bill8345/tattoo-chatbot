@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>刺青聊天機器人</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      background: #f8f0e3; /* 溫暖的淺米色背景 */
+      padding: 30px;
+      font-family: 'Noto Sans TC', sans-serif; /* 更柔和的中文 sans-serif 字體 */
+      color: #333; /* 深灰色文字 */
+      line-height: 1.6;
+    }
+    h2 {
+      color: #d65d4d; /* 個性化的磚紅色標題 */
+      margin-bottom: 25px;
+      text-align: center;
+      font-weight: bold;
+    }
+    #chatWindow {
+      background-color: #fff;
+      border-radius: 12px; /* 更圓潤的邊角 */
+      border: 1px solid #e0e0e0;
+      height: 500px; /* 調整聊天視窗高度 */
+      overflow-y: auto;
+      padding: 20px;
+      margin-bottom: 20px; /* 預留風格圖片空間 */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* 輕微的陰影 */
+    }
+    .message-container {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+    }
+    .bubble {
+      display: inline-block;
+      padding: 12px 18px;
+      border-radius: 20px; /* 更圓潤的氣泡 */
+      margin-bottom: 8px;
+      line-height: 1.5;
+      max-width: 75%;
+      word-wrap: break-word;
+      font-size: 16px;
+    }
+    .user-bubble {
+      background-color: #a8dadc; /* 清新的藍綠色使用者氣泡 */
+      color: #fff;
+      align-self: flex-end; /* 靠右對齊 */
+      margin-right: 15px;
+      text-align: right;
+    }
+    .bot-bubble {
+      background-color: #f1faee; /* 溫和的淺綠色機器人氣泡 */
+      color: #333;
+      align-self: flex-start; /* 靠左對齊 */
+      margin-left: 15px;
+      text-align: left;
+      border: 1px solid #e0e0e0; /* 輕微的邊框 */
+    }
+    #styleContainer {
+      margin-bottom: 25px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center; /* 風格圖片居中 */
+    }
+    .style-card {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    }
+    .style-card img {
+      max-width: 150px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .style-card div {
+      font-size: 14px;
+      color: #555;
+    }
+    #optionContainer {
+      margin-bottom: 30px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center; /* 按鈕居中 */
+    }
+    #optionContainer button {
+      background-color: #fff;
+      color: #d65d4d; /* 個性化的磚紅色按鈕文字 */
+      border: 1px solid #d65d4d;
+      border-radius: 20px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    #optionContainer button:hover {
+      background-color: #d65d4d;
+      color: #fff;
+    }
+    #inputContainer {
+      display: flex;
+      gap: 10px;
+    }
+    #userInput {
+      flex-grow: 1;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 16px;
+    }
+    #sendBtn {
+      background-color: #d65d4d;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    #sendBtn:hover {
+      background-color: #b84a3b;
+    }
+    .message-container img {
+      max-width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      margin-top: 10px;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h2>刺青聊天機器人</h2>
+    <div id="chatWindow"></div>
+
+    <div id="styleContainer"></div>
+
+    <div id="optionContainer" class="option-buttons"></div>
+
+    <div id="inputContainer" class="input-group mb-3">
+      <input type="text" id="userInput" class="form-control" placeholder="輸入你的訊息後，按兩下 Enter 送出…">
+      <button id="sendBtn" class="btn btn-primary">送出</button>
+    </div>
+  </div>
+
+  <script>
+    const chatWindow = document.getElementById('chatWindow');
+    const styleContainer = document.getElementById('styleContainer');
+    const optionContainer = document.getElementById('optionContainer');
+    const inputContainer = document.getElementById('inputContainer');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    let enterCount = 0;
+
+    function appendMessage(sender, text) {
+      const container = document.createElement('div');
+      container.classList.add('message-container');
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble', sender === 'user' ? 'user-bubble' : 'bot-bubble');
+      bubble.innerText = text;
+      container.appendChild(bubble);
+      chatWindow.appendChild(container);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function clearButtons() {
+      optionContainer.innerHTML = '';
+    }
+
+    function renderButtons(options) {
+      clearButtons();
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline-primary';
+        btn.innerText = opt.text;
+        btn.onclick = () => sendMessage(opt.key);
+        optionContainer.appendChild(btn);
+      });
+    }
+
+    function renderStyles(styles) {
+      styleContainer.innerHTML = '';
+      styles.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'style-card';
+        card.onclick = () => {
+          sendMessage(s.key);
+          styleContainer.style.display = 'none'; // 點擊後隱藏風格容器
+        };
+        const img = document.createElement('img'); img.src = s.image;
+        const txt = document.createElement('div'); txt.innerText = s.text;
+        card.append(img, txt);
+        styleContainer.appendChild(card);
+      });
+    }
+
+    function displayReply(replyText) {
+      appendMessage('bot', replyText);
+    }
+
+    function displayFollowUps(followUps) {
+      if (followUps && followUps.length) {
+        renderButtons(followUps);
+        inputContainer.style.display = 'none';
+      } else {
+        clearButtons();
+        inputContainer.style.display = 'flex';
+      }
+    }
+
+    function sendMessage(msg) {
+      appendMessage('user', msg);
+      clearButtons();
+      fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.reply === "好的，正在為你生成紋身設計...") {
+          appendMessage('bot', data.reply);
+          fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: '開始生成' })
+          })
+          .then(response => response.json())
+          .then(imageData => {
+            if (imageData.redirect) {
+              window.location.href = imageData.redirect;
+            } else if (imageData.reply) {
+              displayReply(imageData.reply);
+              displayFollowUps(imageData.follow_ups);
+            } else {
+              console.error("生成圖片後的回應格式不正確:", imageData);
+              appendMessage('bot', '圖片生成失敗，請重試。');
+              inputContainer.style.display = 'flex';
+            }
+          })
+          .catch(error => {
+            console.error('生成圖像時發生錯誤:', error);
+            displayReply('生成圖像時發生錯誤，請重試。');
+            inputContainer.style.display = 'flex';
+          });
+        } else if (data.redirect) {
+          window.location.href = data.redirect;
+        } else if (data.reply) {
+          displayReply(data.reply);
+          displayFollowUps(data.follow_ups);
+        }
+      });
+      enterCount = 0; // 重置計數器
+    }
+
+    sendBtn.addEventListener('click', () => {
+      const text = userInput.value.trim();
+      if (!text) return;
+      userInput.value = '';
+      sendMessage(text);
+      enterCount = 0; // 重置計數器
+    });
+
+    userInput.addEventListener('keyup', e => {
+      if (e.key === 'Enter') {
+        enterCount++;
+        if (enterCount >= 2) {
+          const text = userInput.value.trim();
+          if (!text) return;
+          userInput.value = '';
+          sendMessage(text);
+          enterCount = 0; // 重置計數器
+        }
+      } else {
+        enterCount = 0; // 如果按下其他鍵，重置計數器
+      }
+    });
+
+    // 初始設定：顯示提示與風格卡片，隱藏輸入框直到有互動
+    appendMessage('bot', '{{ initial_prompt|safe }}');
+    const styles = Object.entries({{ styles|tojson }}).map(([k, v]) => ({ key: k, text: v.text, image: v.image }));
+    renderStyles(styles);
+    inputContainer.style.display = 'none';
+  </script>
+</body>
+</html>

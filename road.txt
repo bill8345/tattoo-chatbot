@@ -1,0 +1,1 @@
+cd "/Users/bill.syu/Desktop/side project/tattoo_chatbot"

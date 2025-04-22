@@ -1,0 +1,7 @@
+Flask
+torch
+diffusers
+transformers
+sentencepiece
+accelerate
+huggingface_hub[hf_xet]
